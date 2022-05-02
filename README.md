@@ -116,6 +116,8 @@
 ```
 <h3 align ='center'> Deletar usuário </h3>
 
+`DELETE /api`
+
 <blockquote>
   Obs: não possui corpo de requisição.
   - Necessário access_token (gerado no login) inserido no headers para autorização de acesso. 
