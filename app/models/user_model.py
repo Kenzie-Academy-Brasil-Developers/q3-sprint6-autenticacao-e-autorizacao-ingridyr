@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from app.configs.database import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
-#auth = HTTPTokenAuth(scheme='Bearer')
-
 @dataclass
 class User(db.Model):
     id: int
@@ -12,7 +10,6 @@ class User(db.Model):
     last_name: str
     email: str
     password_hash: str
-    api_key: str
 
     __tablename__ = "users"
 
@@ -21,7 +18,6 @@ class User(db.Model):
     last_name = Column(String(511), nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column(String(511), nullable=False)
-    api_key = Column(String(511), nullable=False)
 
 
     @property

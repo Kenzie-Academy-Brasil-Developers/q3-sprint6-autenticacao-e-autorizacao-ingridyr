@@ -1,17 +1,18 @@
 
 from flask import jsonify, request
 
-from app.configs.auth import auth
-from app.configs.database import db
+from datetime import timedelta
 
+from app.configs.database import db
 from app.models.user_model import User
+
+from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
 
 from psycopg2.errors import UniqueViolation
 
 from sqlalchemy.orm.session import Session
+from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy.exc import IntegrityError
-
-import secrets
 
 valid_keys = ['name', 'last_name', 'email', 'password']
 
@@ -19,7 +20,6 @@ def register():
     session: Session = db.session()
 
     data = request.get_json()
-    data['api_key'] = secrets.token_urlsafe(32)
 
     try:
         for key in valid_keys:
@@ -65,36 +65,44 @@ def login():
     user: User = User.query.filter_by(email=data["email"]).first()
 
     if not user:
-        return {"error": "email doesn't exists"}, 400
+        return {"error": "user doesn't exists"}, 400
 
     if not user.verify_password(data['password']):
         print(user.verify_password(data['password']))
         return {'error': 'incorrect password'}, 400
+
+    token = create_access_token(user, expires_delta=timedelta(hours=4))
     
-    return jsonify({"api_key": user.api_key}), 200
+    return jsonify({'access_token': f'{token}'}), 200
 
-@auth.login_required
+@jwt_required()
 def retrieve_user():
-    user: User = auth.current_user()
+    try:
+        curr_user = get_jwt_identity()
 
-    return {
-        "name": user.name,
-        "last_name": user.last_name,
-        "email": user.email
-    }, 200
+        user: User = User.query.filter_by(id=curr_user["id"]).first()
+    
+        return {
+            "name": user.name,
+            "last_name": user.last_name,
+            "email": user.email
+        }, 200
 
-@auth.login_required
+    except AttributeError:
+        return {'error': "user doesn't exists"}, 404
+
+@jwt_required()
 def update_user():
     session: Session = db.session()
     data = request.get_json()
 
     user: User = User.query.filter_by(email=data["email"]).first()
-    curr_user = auth.current_user()
+    curr_user = get_jwt_identity()
 
     if not user:
-        return {"error": "email doesn't exists"}, 400
+        return {"error": "user doesn't exists"}, 400
 
-    if user.id != curr_user.id:
+    if user.email != curr_user['email']:
         return {"error": "invalid token"}, 401
 
     try:
@@ -124,15 +132,21 @@ def update_user():
         "email": user.email
     }, 200
 
-@auth.login_required
+@jwt_required()
 def delete_user():
     session: Session = db.session()
 
-    user = auth.current_user()
-    if not user:
-        return {"error": f"User doesn't exists"}, 404
+    curr_user = get_jwt_identity()
+    user: User = User.query.filter_by(email=curr_user["email"]).first()
 
-    session.delete(user)
-    session.commit()
+    if not curr_user:
+        return {"error": f"user doesn't exists"}, 404
 
-    return {"msg": f'User {user.name} has been deleted'}, 200
+    try:
+        session.delete(user)
+        session.commit()
+        
+    except UnmappedInstanceError:
+        return {"error": f"user doesn't exists"}, 404
+
+    return {"msg": f'user {user.name} has been deleted'}, 200
