@@ -36,6 +36,7 @@ def register():
         session.commit()
 
     except IntegrityError as e:
+        
         if type(e.orig) == UniqueViolation:
             return jsonify({"msg": "Email already exists"}), 409
 
