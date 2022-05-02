@@ -47,6 +47,10 @@
 
 <h3 align ='center'> Atualização das informações do usuário </h3>
 
+<blockquote>
+  -> Necessário access_token (gerado no login) inserido no headers para autorização de acesso. 
+</blockquote>
+
 `PUT /api - FORMATO DA REQUISIÇÃO:`
 
 ```json
@@ -86,3 +90,18 @@
 	"email": "johnwick@gmail.com"
 }
 ```
+<h3 align ='center'> Deletar usuário </h3>
+
+<blockquote>
+  Obs: não possui corpo de requisição.
+  -> Necessário access_token (gerado no login) inserido no headers para autorização de acesso. 
+</blockquote>
+
+`DELETE /api - FORMATO DA RESPOSTA - STATUS 200:`
+
+```json
+{
+	"msg": "user John has been deleted"
+}
+```
+
