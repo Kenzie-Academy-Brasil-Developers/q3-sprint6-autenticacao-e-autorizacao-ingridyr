@@ -1,5 +1,5 @@
 <p align="center">
-    Essa API foi contruída com objetivo de treinar cadastros e logins.
+    Essa API foi construída com objetivo de treinar cadastros, logins e CRUD.
 </p>
 
 <h2 align ='center'> API </h2>
